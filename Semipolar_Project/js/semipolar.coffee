@@ -1,6 +1,5 @@
 # TODO
 # 3) Add axis labels
-# 5) Follow line marker with little circle and show pos in little
 # 5) Generate some fake data
 # 6)
 
@@ -91,6 +90,7 @@ class SemiPolar
       .text((d) -> Math.abs(d) + "°")
 
     svg.append("path")
+       .attr("id", "polar_path")
        .datum(@generate_data())
        .attr("class", "line")
        .attr("d", line)
@@ -166,6 +166,14 @@ class LinePlot
        .attr("transform", "translate(" + 0 + "," + @h + ")")
        .call(xAxis)
 
+    line = d3.svg.line.radial()
+      .radius((d) ->
+        r(d[1])
+      )
+      .angle((d) -> d[0])
+
+      # r function for scaling is also missing
+
     format_nums = d3.format(".4n")
     svg.append("rect")
        .attr("class", "click_surface")
@@ -192,6 +200,10 @@ class LinePlot
                    .text("Fp: " + format_nums(data.y[idx]))
 
               # select the radial plto
+              d3.select("#polar_path")
+                .datum([[0,]])
+                .attr("class", "line")
+                .attr("d", line)
 
         )
 

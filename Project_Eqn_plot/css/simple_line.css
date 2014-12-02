@@ -1,0 +1,18 @@
+.axisX path,
+.axisY path,
+.axisY line,
+.axisX line {
+  fill: none;
+  stroke: #333;
+  stroke-width: 0.55px;
+  shape-rendering: auto;
+}
+
+/*.line {*/
+  /*fill: none;*/
+  /*stroke-width: 2.5px;*/
+/*}*/
+
+/*.axisX path {*/
+    /*stroke-width: 0.55px;*/
+/*}*/

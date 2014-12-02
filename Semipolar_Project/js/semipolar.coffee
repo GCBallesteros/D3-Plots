@@ -166,6 +166,7 @@ class LinePlot
        .attr("transform", "translate(" + 0 + "," + @h + ")")
        .call(xAxis)
 
+    format_nums = d3.format(".4n")
     svg.append("rect")
        .attr("class", "click_surface")
        .attr("x", @x)
@@ -181,11 +182,17 @@ class LinePlot
               x_pos = xScale.invert(mousePos[0])
               r = (x_pos - extX[0])/(extX[1] - extX[0])
               idx = Math.floor(r*n_x_points)
-              console.log idx
 
               cursor.select("circle")
                     .attr("cx", xScale(data.x[idx]))
                     .attr("cy", yScale(data.y[idx]))
+              cursor.select("#line_1_span")
+                    .text("η: " + format_nums(data.x[idx]))
+              cursor.select("#line_2_span")
+                   .text("Fp: " + format_nums(data.y[idx]))
+
+              # select the radial plto
+
         )
 
     @plot_cursor(svg)
@@ -200,7 +207,7 @@ class LinePlot
       .attr("r", 8)
       .style("fill", "lawngreen")
 
-    cursor.append("text")
+    cr = cursor.append("text")
           .attr("x", @w)
           .attr("y", @y+20)
           .attr("text-anchor", "left")
@@ -208,7 +215,20 @@ class LinePlot
           .attr("font-size", "31px")
           .attr("font-weight", "bold")
           .attr("fill", "black")
-          .text("hola")
+
+    cr.append("tspan")
+      .attr("x", @w)
+      .attr("id", "line_1_span")
+      .text("hola")
+
+    cr.append("tspan")
+      .attr("x", @w)
+      .attr("id", "line_2_span")
+      .attr("dy", 36)
+      .text("hola")
+
+    return cursor
+
   generate_data: ->
     xPoints = d3.range(0, 6, 0.01)
     yPoints = xPoints.map((d) -> Math.cos(d) + 0.3*Math.cos(2*d)+0.4*Math.cos(3*d))

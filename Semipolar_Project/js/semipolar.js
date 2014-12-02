@@ -72,7 +72,7 @@
     }
 
     LinePlot.prototype.plot_line = function() {
-      var data, extX, line, n_x_points, svg, xAxis, xScale, yAxis, yScale;
+      var data, extX, format_nums, line, n_x_points, svg, xAxis, xScale, yAxis, yScale;
       svg = d3.select(this.destiny).append("g").attr("class", "line_plot").attr("transform", "translate(" + this.x + "," + this.y + ")");
       data = this.generate_data();
       extX = d3.extent(data.x);
@@ -89,6 +89,7 @@
       yAxis = d3.svg.axis().scale(yScale).ticks(4).orient("left");
       svg.append("g").attr("class", "axisX").attr("transform", "translate(" + 0 + "," + 0 + ")").call(yAxis);
       svg.append("g").attr("class", "axisY").attr("transform", "translate(" + 0 + "," + this.h + ")").call(xAxis);
+      format_nums = d3.format(".4n");
       svg.append("rect").attr("class", "click_surface").attr("x", this.x).attr("y", this.y).attr("width", this.w).attr("height", this.h).style("fill", "none").style("fill", "rgba(0,0,0,0)").on("mousemove", function() {
         var cursor, idx, mousePos, r, x_pos;
         mousePos = d3.mouse(this);
@@ -96,17 +97,21 @@
         x_pos = xScale.invert(mousePos[0]);
         r = (x_pos - extX[0]) / (extX[1] - extX[0]);
         idx = Math.floor(r * n_x_points);
-        console.log(idx);
-        return cursor.select("circle").attr("cx", xScale(data.x[idx])).attr("cy", yScale(data.y[idx]));
+        cursor.select("circle").attr("cx", xScale(data.x[idx])).attr("cy", yScale(data.y[idx]));
+        cursor.select("#line_1_span").text("η: " + format_nums(data.x[idx]));
+        return cursor.select("#line_2_span").text("Fp: " + format_nums(data.y[idx]));
       });
       return this.plot_cursor(svg);
     };
 
     LinePlot.prototype.plot_cursor = function(svg) {
-      var cursor;
+      var cr, cursor;
       cursor = svg.append("g").attr("id", "cursor");
       cursor.append("circle").attr("cx", 0).attr("cy", 0).attr("r", 8).style("fill", "lawngreen");
-      return cursor.append("text").attr("x", this.w).attr("y", this.y + 20).attr("text-anchor", "left").attr("font-family", "sans-serif").attr("font-size", "31px").attr("font-weight", "bold").attr("fill", "black").text("hola");
+      cr = cursor.append("text").attr("x", this.w).attr("y", this.y + 20).attr("text-anchor", "left").attr("font-family", "sans-serif").attr("font-size", "31px").attr("font-weight", "bold").attr("fill", "black");
+      cr.append("tspan").attr("x", this.w).attr("id", "line_1_span").text("hola");
+      cr.append("tspan").attr("x", this.w).attr("id", "line_2_span").attr("dy", 36).text("hola");
+      return cursor;
     };
 
     LinePlot.prototype.generate_data = function() {

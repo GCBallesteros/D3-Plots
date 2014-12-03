@@ -1,7 +1,8 @@
 # TODO
 # 3) Add axis labels
 # 5) Generate some fake data
-# 6)
+# 6) Refactor so that it is the final plot introduces the interactivity
+#    instead of line plot
 
 class SemiPolar
   constructor: (radius, cx, cy)->
@@ -105,11 +106,12 @@ class SemiPolar
     return d3.transpose([angle, r2])
 
 class LinePlot
-  constructor: (h, w, x, y) ->
+  constructor: (h, w, x, y, polar_radius) ->
     @h = h
     @w = w
     @x = x
     @y = y
+    @polar_radius = polar_radius
     @destiny = "#semipolar_plot"
     @n_x_ticks = 4
     @n_y_ticks = 4
@@ -166,13 +168,15 @@ class LinePlot
        .attr("transform", "translate(" + 0 + "," + @h + ")")
        .call(xAxis)
 
-    line = d3.svg.line.radial()
+    rScale = d3.scale.linear()
+      .domain([0, 1])
+      .range([0, @polar_radius])
+
+    polar_line = d3.svg.line.radial()
       .radius((d) ->
-        r(d[1])
+        rScale(d[1])
       )
       .angle((d) -> d[0])
-
-      # r function for scaling is also missing
 
     format_nums = d3.format(".4n")
     svg.append("rect")
@@ -199,11 +203,12 @@ class LinePlot
               cursor.select("#line_2_span")
                    .text("Fp: " + format_nums(data.y[idx]))
 
+              # generate new data for plot
               # select the radial plto
               d3.select("#polar_path")
                 .datum([[0,]])
                 .attr("class", "line")
-                .attr("d", line)
+                .attr("d", polar_line)
 
         )
 
@@ -288,7 +293,7 @@ class FinalPlot
     grid = new SemiPolar(polar_radius, polar_x_pos, polar_y_pos)
     grid.plot_grid()
 
-    line = new LinePlot(lineplot_h, lineplot_w, line_x_pos, line_y_pos)
+    line = new LinePlot(lineplot_h, lineplot_w, line_x_pos, line_y_pos, polar_radius)
     line.plot_line()
 
 

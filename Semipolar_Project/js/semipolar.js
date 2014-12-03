@@ -70,13 +70,14 @@
       this.n_x_ticks = 4;
       this.n_y_ticks = 4;
       this.id = id;
+      this.data = this.generate_data();
     }
 
     LinePlot.prototype.plot_line = function() {
-      var data, extX, format_nums, id, line, n_x_points, polar_line, rScale, svg, xAxis, xScale, yAxis, yScale;
+      var data, extX, id, line, n_x_points, svg, xAxis, xScale, yAxis, yScale;
       id = this.id;
       svg = d3.select('#' + id).append("g").attr("class", "line_plot").attr("transform", "translate(" + this.x + "," + this.y + ")");
-      data = this.generate_data();
+      data = this.data;
       extX = d3.extent(data.x);
       n_x_points = data.x.length;
       xScale = d3.scale.linear().domain(d3.extent(data.x)).range([0, this.w]);
@@ -91,31 +92,7 @@
       yAxis = d3.svg.axis().scale(yScale).ticks(4).orient("left");
       svg.append("g").attr("class", "axisX").attr("transform", "translate(" + 0 + "," + 0 + ")").call(yAxis);
       svg.append("g").attr("class", "axisY").attr("transform", "translate(" + 0 + "," + this.h + ")").call(xAxis);
-      rScale = d3.scale.linear().domain([0, 1]).range([0, this.polar_radius]);
-      polar_line = d3.svg.line.radial().radius(function(d) {
-        return rScale(d[1]);
-      }).angle(function(d) {
-        return d[0];
-      });
-      format_nums = d3.format(".4n");
-      svg.append("rect").attr("class", "click_surface").attr("x", this.x).attr("y", this.y).attr("width", this.w).attr("height", this.h).style("fill", "none").style("fill", "rgba(0,0,0,0)").on("mousemove", function() {
-        var cursor, cursor_id, idx, mousePos, new_angle, new_r, path_id, r, x_pos;
-        mousePos = d3.mouse(this);
-        cursor_id = '#' + id + "_cursor";
-        cursor = d3.select(cursor_id);
-        x_pos = xScale.invert(mousePos[0]);
-        r = (x_pos - extX[0]) / (extX[1] - extX[0]);
-        idx = Math.floor(r * n_x_points);
-        cursor.select("circle").attr("cx", xScale(data.x[idx])).attr("cy", yScale(data.y[idx]));
-        cursor.select('#' + id + "_line_1_span").text("η: " + format_nums(data.x[idx]));
-        cursor.select('#' + id + "_line_2_span").text("Fp: " + format_nums(data.y[idx]));
-        new_angle = d3.range(-Math.PI / 2, Math.PI / 2, Math.PI / 101);
-        new_r = new_angle.map(function(d) {
-          return Math.sin(d + xScale.invert(mousePos[0]));
-        });
-        path_id = '#' + id + "_polar_path";
-        return d3.select(path_id).datum(d3.transpose([new_angle, new_r])).attr("class", "line").attr("d", polar_line);
-      });
+      svg.append("rect").attr("class", "click_surface").attr("x", this.x).attr("y", this.y).attr("width", this.w).attr("height", this.h).style("fill", "none").style("fill", "rgba(0,0,0,0)");
       return this.plot_cursor(svg);
     };
 
@@ -125,7 +102,7 @@
       cursor.append("circle").attr("cx", 0).attr("cy", 0).attr("r", 8).style("fill", "lawngreen");
       cr = cursor.append("text").attr("x", this.w).attr("y", this.y + 20).attr("text-anchor", "left").attr("font-family", "sans-serif").attr("font-size", "31px").attr("font-weight", "bold").attr("fill", "black");
       cr.append("tspan").attr("x", this.w).attr("id", this.id + "_line_1_span").text("hola");
-      cr.append("tspan").attr("x", this.w).attr("id", this.id + "line_2_span").attr("dy", 36).text("hola");
+      cr.append("tspan").attr("x", this.w).attr("id", this.id + "_line_2_span").attr("dy", 36).text("hola");
       return cursor;
     };
 
@@ -135,7 +112,7 @@
       yPoints = xPoints.map(function(d) {
         return Math.cos(d) + 0.3 * Math.cos(2 * d) + 0.4 * Math.cos(3 * d);
       });
-      return {
+      return this.data = {
         x: xPoints,
         y: yPoints
       };
@@ -159,12 +136,13 @@
     }
 
     FinalPlot.prototype.plot = function() {
-      var grid, h, line, line_x_pos, line_y_pos, lineplot_h, lineplot_w, polar_radius, polar_x_pos, polar_y_pos, svg, w, xfigScale, yfigScale;
+      var extX, format_nums, grid, h, id, line, line_data, line_x_pos, line_y_pos, lineplot_h, lineplot_w, n_x_points, polar_line, polar_radius, polar_x_pos, polar_y_pos, rScale, sc, svg, w, xScale, xfigScale, yScale, yfigScale;
+      id = this.id;
       w = this.width - this.margin.left - this.margin.right;
       h = this.height - this.margin.top - this.margin.bottom;
       xfigScale = d3.scale.linear().domain([0, 1]).range([0, w]);
       yfigScale = d3.scale.linear().domain([0, 1]).range([0, h]);
-      svg = d3.select("body").append("svg").attr("width", this.width).attr("height", this.height).append("g").attr("id", this.id).attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+      svg = d3.select("body").append("svg").attr("width", this.width).attr("height", this.height).append("g").attr("id", id).attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
       polar_x_pos = xfigScale(0.85);
       polar_y_pos = yfigScale(0.6);
       polar_radius = xfigScale(0.15);
@@ -172,13 +150,41 @@
       line_y_pos = yfigScale(0);
       lineplot_w = xfigScale(0.65);
       lineplot_h = yfigScale(1);
-      grid = new SemiPolar(polar_radius, polar_x_pos, polar_y_pos, this.id);
+      grid = new SemiPolar(polar_radius, polar_x_pos, polar_y_pos, id);
       grid.plot_grid();
-      line = new LinePlot(lineplot_h, lineplot_w, line_x_pos, line_y_pos, polar_radius, this.id);
-      return line.plot_line();
+      line = new LinePlot(lineplot_h, lineplot_w, line_x_pos, line_y_pos, polar_radius, id);
+      line.plot_line();
+      line_data = line.data;
+      xScale = d3.scale.linear().domain(d3.extent(line_data.x)).range([0, lineplot_w]);
+      extX = d3.extent(line_data.x);
+      yScale = d3.scale.linear().domain(d3.extent(line_data.y)).range([lineplot_h, 0]);
+      n_x_points = line_data.x.length;
+      format_nums = d3.format(".4n");
+      rScale = d3.scale.linear().domain([0, 1]).range([0, polar_radius]);
+      polar_line = d3.svg.line.radial().radius(function(d) {
+        return rScale(d[1]);
+      }).angle(function(d) {
+        return d[0];
+      });
+      return sc = d3.select('#' + id).select(".line_plot").select(".click_surface").on("mousemove", function() {
+        var cursor, cursor_id, idx, mousePos, new_angle, new_r, path_id, r, x_pos;
+        mousePos = d3.mouse(this);
+        cursor_id = '#' + id + "_cursor";
+        cursor = d3.select(cursor_id);
+        x_pos = xScale.invert(mousePos[0]);
+        r = (x_pos - extX[0]) / (extX[1] - extX[0]);
+        idx = Math.floor(r * n_x_points);
+        cursor.select("circle").attr("cx", xScale(line_data.x[idx])).attr("cy", yScale(line_data.y[idx]));
+        cursor.select('#' + id + "_line_1_span").text("η: " + format_nums(line_data.x[idx]));
+        cursor.select('#' + id + "_line_2_span").text("Fp: " + format_nums(line_data.y[idx]));
+        new_angle = d3.range(-Math.PI / 2, Math.PI / 2, Math.PI / 101);
+        new_r = new_angle.map(function(d) {
+          return Math.sin(d + xScale.invert(mousePos[0]));
+        });
+        path_id = '#' + id + "_polar_path";
+        return d3.select(path_id).datum(d3.transpose([new_angle, new_r])).attr("class", "line").attr("d", polar_line);
+      });
     };
-
-    FinalPlot.prototype.line_plot = function() {};
 
     return FinalPlot;
 

@@ -1,8 +1,6 @@
 # TODO
 # 3) Add axis labels
 # 5) Generate some fake data
-# 6) Refactor so that it is the final plot introduces the interactivity
-#    instead of line plot
 
 class SemiPolar
   constructor: (radius, cx, cy, id)->
@@ -115,6 +113,7 @@ class LinePlot
     @n_x_ticks = 4
     @n_y_ticks = 4
     @id = id
+    @data = @generate_data()
 
   plot_line: ->
     id = @id
@@ -125,9 +124,7 @@ class LinePlot
         .attr("transform",
               "translate(" + @x + "," + @y + ")")
 
-    data = @generate_data()
-    extX = d3.extent(data.x)
-    n_x_points = data.x.length
+    data = @data
 
     xScale = d3.scale.linear()
                      .domain(d3.extent(data.x))
@@ -170,17 +167,6 @@ class LinePlot
        .attr("transform", "translate(" + 0 + "," + @h + ")")
        .call(xAxis)
 
-    rScale = d3.scale.linear()
-      .domain([0, 1])
-      .range([0, @polar_radius])
-
-    polar_line = d3.svg.line.radial()
-      .radius((d) ->
-        rScale(d[1])
-      )
-      .angle((d) -> d[0])
-
-    format_nums = d3.format(".4n")
     svg.append("rect")
        .attr("class", "click_surface")
        .attr("x", @x)
@@ -189,35 +175,6 @@ class LinePlot
        .attr("height", @h)
        .style("fill", "none")
        .style("fill", "rgba(0,0,0,0)")
-       .on("mousemove", ->
-              mousePos = d3.mouse(this)
-              cursor_id = '#' + id + "_cursor"
-              cursor = d3.select(cursor_id)
-
-              x_pos = xScale.invert(mousePos[0])
-              r = (x_pos - extX[0])/(extX[1] - extX[0])
-              idx = Math.floor(r*n_x_points)
-
-              cursor.select("circle")
-                    .attr("cx", xScale(data.x[idx]))
-                    .attr("cy", yScale(data.y[idx]))
-              cursor.select('#' + id + "_line_1_span")
-                    .text("η: " + format_nums(data.x[idx]))
-              cursor.select('#' + id + "_line_2_span")
-                   .text("Fp: " + format_nums(data.y[idx]))
-
-              # generate new data for plot
-              # select the radial plto
-              new_angle = d3.range(-Math.PI/2, Math.PI/2, Math.PI/101)
-              new_r = new_angle.map((d) -> Math.sin(d + xScale.invert(mousePos[0])))
-
-              path_id = '#' + id + "_polar_path"
-              d3.select(path_id)
-                .datum(d3.transpose([new_angle, new_r]))
-                .attr("class", "line")
-                .attr("d", polar_line)
-
-        )
 
     @plot_cursor(svg)
 
@@ -247,7 +204,7 @@ class LinePlot
 
     cr.append("tspan")
       .attr("x", @w)
-      .attr("id", @id + "line_2_span")
+      .attr("id", @id + "_line_2_span")
       .attr("dy", 36)
       .text("hola")
 
@@ -257,7 +214,7 @@ class LinePlot
     xPoints = d3.range(0, 6, 0.01)
     yPoints = xPoints.map((d) -> Math.cos(d) + 0.3*Math.cos(2*d)+0.4*Math.cos(3*d))
 
-    return {x: xPoints, y: yPoints}
+    @data = {x: xPoints, y: yPoints}
 
 
 class FinalPlot
@@ -274,6 +231,7 @@ class FinalPlot
     @id = "fantastic_id"
 
   plot: ->
+    id = @id
     w = @width - @margin.left - @margin.right
     h = @height - @margin.top - @margin.bottom
 
@@ -284,7 +242,7 @@ class FinalPlot
         .attr("width", @width)
         .attr("height", @height)
         .append("g")
-        .attr("id", @id)
+        .attr("id", id)
         .attr("transform",
               "translate(" + @margin.left + "," + @margin.top + ")")
 
@@ -293,23 +251,73 @@ class FinalPlot
     polar_y_pos = yfigScale(0.6)
     polar_radius = xfigScale(0.15)
 
-    #Position and Size of Line plot
+    #Positiconsole.log "Hola"on and Size of Line plot
     line_x_pos = xfigScale(0)
     line_y_pos = yfigScale(0)
     lineplot_w = xfigScale(0.65)
     lineplot_h = yfigScale(1)
 
-    grid = new SemiPolar(polar_radius, polar_x_pos, polar_y_pos, @id)
+    grid = new SemiPolar(polar_radius, polar_x_pos, polar_y_pos, id)
     grid.plot_grid()
 
     line = new LinePlot(lineplot_h, lineplot_w,
                         line_x_pos, line_y_pos,
-                        polar_radius, @id)
+                        polar_radius, id)
     line.plot_line()
 
+    # Things needed to be able to add interactivity here
+    line_data = line.data
+
+    xScale = d3.scale.linear()
+                     .domain(d3.extent(line_data.x))
+                     .range([0, lineplot_w])
+    extX = d3.extent(line_data.x)
+    yScale = d3.scale.linear()
+                     .domain(d3.extent(line_data.y))
+                     .range([lineplot_h, 0])
+    n_x_points = line_data.x.length
+    format_nums = d3.format(".4n")
+    rScale = d3.scale.linear()
+      .domain([0, 1])
+      .range([0, polar_radius])
+
+    polar_line = d3.svg.line.radial()
+      .radius((d) ->
+        rScale(d[1])
+      )
+      .angle((d) -> d[0])
 
 
-  line_plot: ->
+    sc = d3.select('#' + id).select(".line_plot").select(".click_surface")
+    .on("mousemove", ->
+              mousePos = d3.mouse(this)
+              cursor_id = '#' + id + "_cursor"
+              cursor = d3.select(cursor_id)
+
+              x_pos = xScale.invert(mousePos[0])
+              r = (x_pos - extX[0])/(extX[1] - extX[0])
+              idx = Math.floor(r*n_x_points)
+
+              cursor.select("circle")
+                    .attr("cx", xScale(line_data.x[idx]))
+                    .attr("cy", yScale(line_data.y[idx]))
+              cursor.select('#' + id + "_line_1_span")
+                    .text("η: " + format_nums(line_data.x[idx]))
+              cursor.select('#' + id + "_line_2_span")
+                   .text("Fp: " + format_nums(line_data.y[idx]))
+
+              ## generate new data for plot
+              ## select the radial plot
+              new_angle = d3.range(-Math.PI/2, Math.PI/2, Math.PI/101)
+              new_r = new_angle.map((d) -> Math.sin(d + xScale.invert(mousePos[0])))
+
+              path_id = '#' + id + "_polar_path"
+              d3.select(path_id)
+                .datum(d3.transpose([new_angle, new_r]))
+                .attr("class", "line")
+                .attr("d", polar_line)
+        )
+
 
 # Plot the damn thing
 plot = new FinalPlot

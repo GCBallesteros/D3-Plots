@@ -5,13 +5,14 @@
 #    instead of line plot
 
 class SemiPolar
-  constructor: (radius, cx, cy)->
+  constructor: (radius, cx, cy, id)->
     @radius = radius
     @cx = cx  # coordinate x center
     @cy = cy  # coordinate y center
     @n_r_ticks = 4
     @n_ang_ticks = 6 # even numbers look better
     @destiny = "#semipolar_plot"
+    @id = id
 
 
   plot_grid: ->
@@ -106,7 +107,7 @@ class SemiPolar
     return d3.transpose([angle, r2])
 
 class LinePlot
-  constructor: (h, w, x, y, polar_radius) ->
+  constructor: (h, w, x, y, polar_radius, id) ->
     @h = h
     @w = w
     @x = x
@@ -115,6 +116,7 @@ class LinePlot
     @destiny = "#semipolar_plot"
     @n_x_ticks = 4
     @n_y_ticks = 4
+    @id = id
 
   plot_line: ->
     svg = d3.select(@destiny)
@@ -205,8 +207,11 @@ class LinePlot
 
               # generate new data for plot
               # select the radial plto
+              new_angle = d3.range(-Math.PI/2, Math.PI/2, Math.PI/101)
+              new_r = new_angle.map((d) -> Math.sin(d + xScale.invert(mousePos[0])))
+
               d3.select("#polar_path")
-                .datum([[0,]])
+                .datum(d3.transpose([new_angle, new_r]))
                 .attr("class", "line")
                 .attr("d", polar_line)
 
@@ -264,6 +269,8 @@ class FinalPlot
       bottom: 40
       left: 40
 
+    @id = "fantastic_id"
+
   plot: ->
     w = @width - @margin.left - @margin.right
     h = @height - @margin.top - @margin.bottom
@@ -290,10 +297,12 @@ class FinalPlot
     lineplot_w = xfigScale(0.65)
     lineplot_h = yfigScale(1)
 
-    grid = new SemiPolar(polar_radius, polar_x_pos, polar_y_pos)
+    grid = new SemiPolar(polar_radius, polar_x_pos, polar_y_pos, @id)
     grid.plot_grid()
 
-    line = new LinePlot(lineplot_h, lineplot_w, line_x_pos, line_y_pos, polar_radius)
+    line = new LinePlot(lineplot_h, lineplot_w,
+                        line_x_pos, line_y_pos,
+                        polar_radius, @id)
     line.plot_line()
 
 

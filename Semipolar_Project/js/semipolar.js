@@ -3,13 +3,14 @@
   var FinalPlot, LinePlot, SemiPolar, plot;
 
   SemiPolar = (function() {
-    function SemiPolar(radius, cx, cy) {
+    function SemiPolar(radius, cx, cy, id) {
       this.radius = radius;
       this.cx = cx;
       this.cy = cy;
       this.n_r_ticks = 4;
       this.n_ang_ticks = 6;
       this.destiny = "#semipolar_plot";
+      this.id = id;
     }
 
     SemiPolar.prototype.plot_grid = function() {
@@ -44,7 +45,7 @@
       }).text(function(d) {
         return Math.abs(d) + "°";
       });
-      return svg.append("path").datum(this.generate_data()).attr("class", "line").attr("d", line).style("stroke", "red").style("stroke-width", "2px").style("fill", "none");
+      return svg.append("path").attr("id", "polar_path").datum(this.generate_data()).attr("class", "line").attr("d", line).style("stroke", "red").style("stroke-width", "2px").style("fill", "none");
     };
 
     SemiPolar.prototype.generate_data = function() {
@@ -61,18 +62,20 @@
   })();
 
   LinePlot = (function() {
-    function LinePlot(h, w, x, y) {
+    function LinePlot(h, w, x, y, polar_radius, id) {
       this.h = h;
       this.w = w;
       this.x = x;
       this.y = y;
+      this.polar_radius = polar_radius;
       this.destiny = "#semipolar_plot";
       this.n_x_ticks = 4;
       this.n_y_ticks = 4;
+      this.id = id;
     }
 
     LinePlot.prototype.plot_line = function() {
-      var data, extX, format_nums, line, n_x_points, svg, xAxis, xScale, yAxis, yScale;
+      var data, extX, format_nums, line, n_x_points, polar_line, rScale, svg, xAxis, xScale, yAxis, yScale;
       svg = d3.select(this.destiny).append("g").attr("class", "line_plot").attr("transform", "translate(" + this.x + "," + this.y + ")");
       data = this.generate_data();
       extX = d3.extent(data.x);
@@ -89,9 +92,15 @@
       yAxis = d3.svg.axis().scale(yScale).ticks(4).orient("left");
       svg.append("g").attr("class", "axisX").attr("transform", "translate(" + 0 + "," + 0 + ")").call(yAxis);
       svg.append("g").attr("class", "axisY").attr("transform", "translate(" + 0 + "," + this.h + ")").call(xAxis);
+      rScale = d3.scale.linear().domain([0, 1]).range([0, this.polar_radius]);
+      polar_line = d3.svg.line.radial().radius(function(d) {
+        return rScale(d[1]);
+      }).angle(function(d) {
+        return d[0];
+      });
       format_nums = d3.format(".4n");
       svg.append("rect").attr("class", "click_surface").attr("x", this.x).attr("y", this.y).attr("width", this.w).attr("height", this.h).style("fill", "none").style("fill", "rgba(0,0,0,0)").on("mousemove", function() {
-        var cursor, idx, mousePos, r, x_pos;
+        var cursor, idx, mousePos, new_angle, new_r, r, x_pos;
         mousePos = d3.mouse(this);
         cursor = d3.select("#cursor");
         x_pos = xScale.invert(mousePos[0]);
@@ -99,7 +108,12 @@
         idx = Math.floor(r * n_x_points);
         cursor.select("circle").attr("cx", xScale(data.x[idx])).attr("cy", yScale(data.y[idx]));
         cursor.select("#line_1_span").text("η: " + format_nums(data.x[idx]));
-        return cursor.select("#line_2_span").text("Fp: " + format_nums(data.y[idx]));
+        cursor.select("#line_2_span").text("Fp: " + format_nums(data.y[idx]));
+        new_angle = d3.range(-Math.PI / 2, Math.PI / 2, Math.PI / 101);
+        new_r = new_angle.map(function(d) {
+          return Math.sin(d + xScale.invert(mousePos[0]));
+        });
+        return d3.select("#polar_path").datum(d3.transpose([new_angle, new_r])).attr("class", "line").attr("d", polar_line);
       });
       return this.plot_cursor(svg);
     };
@@ -140,6 +154,7 @@
         bottom: 40,
         left: 40
       };
+      this.id = "fantastic_id";
     }
 
     FinalPlot.prototype.plot = function() {
@@ -156,9 +171,9 @@
       line_y_pos = yfigScale(0);
       lineplot_w = xfigScale(0.65);
       lineplot_h = yfigScale(1);
-      grid = new SemiPolar(polar_radius, polar_x_pos, polar_y_pos);
+      grid = new SemiPolar(polar_radius, polar_x_pos, polar_y_pos, this.id);
       grid.plot_grid();
-      line = new LinePlot(lineplot_h, lineplot_w, line_x_pos, line_y_pos);
+      line = new LinePlot(lineplot_h, lineplot_w, line_x_pos, line_y_pos, polar_radius, this.id);
       return line.plot_line();
     };
 

@@ -11,13 +11,12 @@ class SemiPolar
     @cy = cy  # coordinate y center
     @n_r_ticks = 4
     @n_ang_ticks = 6 # even numbers look better
-    @destiny = "#semipolar_plot"
     @id = id
 
 
   plot_grid: ->
     radius = @radius
-    svg = d3.select(@destiny)
+    svg = d3.select('#'+@id)
       .append("g")
         .attr("class", "semipolar_grid")
         .attr("transform",
@@ -92,7 +91,7 @@ class SemiPolar
       .text((d) -> Math.abs(d) + "°")
 
     svg.append("path")
-       .attr("id", "polar_path")
+       .attr("id", @id + '_' + "polar_path")
        .datum(@generate_data())
        .attr("class", "line")
        .attr("d", line)
@@ -113,13 +112,14 @@ class LinePlot
     @x = x
     @y = y
     @polar_radius = polar_radius
-    @destiny = "#semipolar_plot"
     @n_x_ticks = 4
     @n_y_ticks = 4
     @id = id
 
   plot_line: ->
-    svg = d3.select(@destiny)
+    id = @id
+
+    svg = d3.select('#'+id)
       .append("g")
         .attr("class", "line_plot")
         .attr("transform",
@@ -191,7 +191,8 @@ class LinePlot
        .style("fill", "rgba(0,0,0,0)")
        .on("mousemove", ->
               mousePos = d3.mouse(this)
-              cursor = d3.select("#cursor")
+              cursor_id = '#' + id + "_cursor"
+              cursor = d3.select(cursor_id)
 
               x_pos = xScale.invert(mousePos[0])
               r = (x_pos - extX[0])/(extX[1] - extX[0])
@@ -200,9 +201,9 @@ class LinePlot
               cursor.select("circle")
                     .attr("cx", xScale(data.x[idx]))
                     .attr("cy", yScale(data.y[idx]))
-              cursor.select("#line_1_span")
+              cursor.select('#' + id + "_line_1_span")
                     .text("η: " + format_nums(data.x[idx]))
-              cursor.select("#line_2_span")
+              cursor.select('#' + id + "_line_2_span")
                    .text("Fp: " + format_nums(data.y[idx]))
 
               # generate new data for plot
@@ -210,7 +211,8 @@ class LinePlot
               new_angle = d3.range(-Math.PI/2, Math.PI/2, Math.PI/101)
               new_r = new_angle.map((d) -> Math.sin(d + xScale.invert(mousePos[0])))
 
-              d3.select("#polar_path")
+              path_id = '#' + id + "_polar_path"
+              d3.select(path_id)
                 .datum(d3.transpose([new_angle, new_r]))
                 .attr("class", "line")
                 .attr("d", polar_line)
@@ -221,7 +223,7 @@ class LinePlot
 
   plot_cursor: (svg) ->
     cursor = svg.append("g")
-                .attr("id", "cursor")
+                .attr("id", @id + "_cursor")
 
     cursor.append("circle")
       .attr("cx", 0)
@@ -240,12 +242,12 @@ class LinePlot
 
     cr.append("tspan")
       .attr("x", @w)
-      .attr("id", "line_1_span")
+      .attr("id", @id + "_line_1_span")
       .text("hola")
 
     cr.append("tspan")
       .attr("x", @w)
-      .attr("id", "line_2_span")
+      .attr("id", @id + "line_2_span")
       .attr("dy", 36)
       .text("hola")
 
@@ -282,7 +284,7 @@ class FinalPlot
         .attr("width", @width)
         .attr("height", @height)
         .append("g")
-        .attr("id", "semipolar_plot")
+        .attr("id", @id)
         .attr("transform",
               "translate(" + @margin.left + "," + @margin.top + ")")
 

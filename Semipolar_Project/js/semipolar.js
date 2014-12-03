@@ -9,14 +9,13 @@
       this.cy = cy;
       this.n_r_ticks = 4;
       this.n_ang_ticks = 6;
-      this.destiny = "#semipolar_plot";
       this.id = id;
     }
 
     SemiPolar.prototype.plot_grid = function() {
       var arc, ga, gr, line, r, radius, svg;
       radius = this.radius;
-      svg = d3.select(this.destiny).append("g").attr("class", "semipolar_grid").attr("transform", "translate(" + this.cx + "," + this.cy + ")");
+      svg = d3.select('#' + this.id).append("g").attr("class", "semipolar_grid").attr("transform", "translate(" + this.cx + "," + this.cy + ")");
       r = d3.scale.linear().domain([0, 1]).range([0, this.radius]);
       arc = d3.svg.arc().startAngle(Math.PI / 2).endAngle(-Math.PI / 2).innerRadius(0).outerRadius(function(d) {
         return r(d);
@@ -45,7 +44,7 @@
       }).text(function(d) {
         return Math.abs(d) + "°";
       });
-      return svg.append("path").attr("id", "polar_path").datum(this.generate_data()).attr("class", "line").attr("d", line).style("stroke", "red").style("stroke-width", "2px").style("fill", "none");
+      return svg.append("path").attr("id", this.id + '_' + "polar_path").datum(this.generate_data()).attr("class", "line").attr("d", line).style("stroke", "red").style("stroke-width", "2px").style("fill", "none");
     };
 
     SemiPolar.prototype.generate_data = function() {
@@ -68,15 +67,15 @@
       this.x = x;
       this.y = y;
       this.polar_radius = polar_radius;
-      this.destiny = "#semipolar_plot";
       this.n_x_ticks = 4;
       this.n_y_ticks = 4;
       this.id = id;
     }
 
     LinePlot.prototype.plot_line = function() {
-      var data, extX, format_nums, line, n_x_points, polar_line, rScale, svg, xAxis, xScale, yAxis, yScale;
-      svg = d3.select(this.destiny).append("g").attr("class", "line_plot").attr("transform", "translate(" + this.x + "," + this.y + ")");
+      var data, extX, format_nums, id, line, n_x_points, polar_line, rScale, svg, xAxis, xScale, yAxis, yScale;
+      id = this.id;
+      svg = d3.select('#' + id).append("g").attr("class", "line_plot").attr("transform", "translate(" + this.x + "," + this.y + ")");
       data = this.generate_data();
       extX = d3.extent(data.x);
       n_x_points = data.x.length;
@@ -100,31 +99,33 @@
       });
       format_nums = d3.format(".4n");
       svg.append("rect").attr("class", "click_surface").attr("x", this.x).attr("y", this.y).attr("width", this.w).attr("height", this.h).style("fill", "none").style("fill", "rgba(0,0,0,0)").on("mousemove", function() {
-        var cursor, idx, mousePos, new_angle, new_r, r, x_pos;
+        var cursor, cursor_id, idx, mousePos, new_angle, new_r, path_id, r, x_pos;
         mousePos = d3.mouse(this);
-        cursor = d3.select("#cursor");
+        cursor_id = '#' + id + "_cursor";
+        cursor = d3.select(cursor_id);
         x_pos = xScale.invert(mousePos[0]);
         r = (x_pos - extX[0]) / (extX[1] - extX[0]);
         idx = Math.floor(r * n_x_points);
         cursor.select("circle").attr("cx", xScale(data.x[idx])).attr("cy", yScale(data.y[idx]));
-        cursor.select("#line_1_span").text("η: " + format_nums(data.x[idx]));
-        cursor.select("#line_2_span").text("Fp: " + format_nums(data.y[idx]));
+        cursor.select('#' + id + "_line_1_span").text("η: " + format_nums(data.x[idx]));
+        cursor.select('#' + id + "_line_2_span").text("Fp: " + format_nums(data.y[idx]));
         new_angle = d3.range(-Math.PI / 2, Math.PI / 2, Math.PI / 101);
         new_r = new_angle.map(function(d) {
           return Math.sin(d + xScale.invert(mousePos[0]));
         });
-        return d3.select("#polar_path").datum(d3.transpose([new_angle, new_r])).attr("class", "line").attr("d", polar_line);
+        path_id = '#' + id + "_polar_path";
+        return d3.select(path_id).datum(d3.transpose([new_angle, new_r])).attr("class", "line").attr("d", polar_line);
       });
       return this.plot_cursor(svg);
     };
 
     LinePlot.prototype.plot_cursor = function(svg) {
       var cr, cursor;
-      cursor = svg.append("g").attr("id", "cursor");
+      cursor = svg.append("g").attr("id", this.id + "_cursor");
       cursor.append("circle").attr("cx", 0).attr("cy", 0).attr("r", 8).style("fill", "lawngreen");
       cr = cursor.append("text").attr("x", this.w).attr("y", this.y + 20).attr("text-anchor", "left").attr("font-family", "sans-serif").attr("font-size", "31px").attr("font-weight", "bold").attr("fill", "black");
-      cr.append("tspan").attr("x", this.w).attr("id", "line_1_span").text("hola");
-      cr.append("tspan").attr("x", this.w).attr("id", "line_2_span").attr("dy", 36).text("hola");
+      cr.append("tspan").attr("x", this.w).attr("id", this.id + "_line_1_span").text("hola");
+      cr.append("tspan").attr("x", this.w).attr("id", this.id + "line_2_span").attr("dy", 36).text("hola");
       return cursor;
     };
 
@@ -163,7 +164,7 @@
       h = this.height - this.margin.top - this.margin.bottom;
       xfigScale = d3.scale.linear().domain([0, 1]).range([0, w]);
       yfigScale = d3.scale.linear().domain([0, 1]).range([0, h]);
-      svg = d3.select("body").append("svg").attr("width", this.width).attr("height", this.height).append("g").attr("id", "semipolar_plot").attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
+      svg = d3.select("body").append("svg").attr("width", this.width).attr("height", this.height).append("g").attr("id", this.id).attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
       polar_x_pos = xfigScale(0.85);
       polar_y_pos = yfigScale(0.6);
       polar_radius = xfigScale(0.15);

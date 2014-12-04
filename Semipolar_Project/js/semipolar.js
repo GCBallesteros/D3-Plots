@@ -123,9 +123,9 @@
       var cr, cursor;
       cursor = svg.append("g").attr("id", this.id + "_cursor");
       cursor.append("circle").attr("cx", 0).attr("cy", 0).attr("r", 8).style("fill", "lawngreen");
-      cr = cursor.append("text").attr("x", this.w).attr("y", this.y + 20).attr("text-anchor", "left").attr("font-family", "sans-serif").attr("font-size", "31px").attr("font-weight", "bold").attr("fill", "black");
-      cr.append("tspan").attr("x", this.w).attr("id", this.id + "_line_1_span").text("hola");
-      cr.append("tspan").attr("x", this.w).attr("id", this.id + "line_2_span").attr("dy", 36).text("hola");
+      cr = cursor.append("text").attr("y", this.h - 100).attr("text-anchor", "left").attr("font-family", "sans-serif").attr("font-size", "41px").attr("font-weight", "bold").attr("fill", "black");
+      cr.append("tspan").attr("x", this.w + 130).attr("id", this.id + "_line_1_span").text("hola");
+      cr.append("tspan").attr("x", this.w + 130).attr("id", this.id + "_line_2_span").attr("dy", 40).text("hola");
       return cursor;
     };
 
@@ -148,7 +148,7 @@
   FinalPlot = (function() {
     function FinalPlot() {
       this.width = 1200;
-      this.height = 520;
+      this.height = 470;
       this.margin = {
         top: 40,
         right: 40,
@@ -165,12 +165,12 @@
       xfigScale = d3.scale.linear().domain([0, 1]).range([0, w]);
       yfigScale = d3.scale.linear().domain([0, 1]).range([0, h]);
       svg = d3.select("body").append("svg").attr("width", this.width).attr("height", this.height).append("g").attr("id", this.id).attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-      polar_x_pos = xfigScale(0.85);
-      polar_y_pos = yfigScale(0.6);
+      polar_x_pos = xfigScale(0.75);
+      polar_y_pos = yfigScale(0.5);
       polar_radius = xfigScale(0.15);
       line_x_pos = xfigScale(0);
       line_y_pos = yfigScale(0);
-      lineplot_w = xfigScale(0.65);
+      lineplot_w = xfigScale(0.55);
       lineplot_h = yfigScale(1);
       grid = new SemiPolar(polar_radius, polar_x_pos, polar_y_pos, this.id);
       grid.plot_grid();

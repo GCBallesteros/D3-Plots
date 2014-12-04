@@ -232,23 +232,22 @@ class LinePlot
       .style("fill", "lawngreen")
 
     cr = cursor.append("text")
-          .attr("x", @w)
-          .attr("y", @y+20)
+          .attr("y", @h-100)
           .attr("text-anchor", "left")
           .attr("font-family", "sans-serif")
-          .attr("font-size", "31px")
+          .attr("font-size", "41px")
           .attr("font-weight", "bold")
           .attr("fill", "black")
 
     cr.append("tspan")
-      .attr("x", @w)
+      .attr("x", @w+130)
       .attr("id", @id + "_line_1_span")
       .text("hola")
 
     cr.append("tspan")
-      .attr("x", @w)
-      .attr("id", @id + "line_2_span")
-      .attr("dy", 36)
+      .attr("x", @w+130)
+      .attr("id", @id + "_line_2_span")
+      .attr("dy", 40)
       .text("hola")
 
     return cursor
@@ -263,7 +262,7 @@ class LinePlot
 class FinalPlot
   constructor: ->
     @width = 1200
-    @height = 520
+    @height = 470
 
     @margin =
       top: 40
@@ -289,14 +288,14 @@ class FinalPlot
               "translate(" + @margin.left + "," + @margin.top + ")")
 
     #Position and Size of Polar plot
-    polar_x_pos = xfigScale(0.85)
-    polar_y_pos = yfigScale(0.6)
+    polar_x_pos = xfigScale(0.75)
+    polar_y_pos = yfigScale(0.5)
     polar_radius = xfigScale(0.15)
 
     #Position and Size of Line plot
     line_x_pos = xfigScale(0)
     line_y_pos = yfigScale(0)
-    lineplot_w = xfigScale(0.65)
+    lineplot_w = xfigScale(0.55)
     lineplot_h = yfigScale(1)
 
     grid = new SemiPolar(polar_radius, polar_x_pos, polar_y_pos, @id)

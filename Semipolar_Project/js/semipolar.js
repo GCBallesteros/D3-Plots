@@ -74,12 +74,10 @@
     }
 
     LinePlot.prototype.plot_line = function() {
-      var data, extX, id, line, n_x_points, svg, xAxis, xScale, yAxis, yScale;
+      var data, id, line, svg, xAxis, xScale, yAxis, yScale;
       id = this.id;
       svg = d3.select('#' + id).append("g").attr("class", "line_plot").attr("transform", "translate(" + this.x + "," + this.y + ")");
       data = this.data;
-      extX = d3.extent(data.x);
-      n_x_points = data.x.length;
       xScale = d3.scale.linear().domain(d3.extent(data.x)).range([0, this.w]);
       yScale = d3.scale.linear().domain(d3.extent(data.y)).range([this.h, 0]);
       line = d3.svg.line().x(function(d) {
@@ -142,15 +140,9 @@
       h = this.height - this.margin.top - this.margin.bottom;
       xfigScale = d3.scale.linear().domain([0, 1]).range([0, w]);
       yfigScale = d3.scale.linear().domain([0, 1]).range([0, h]);
-<<<<<<< HEAD
       svg = d3.select("body").append("svg").attr("width", this.width).attr("height", this.height).append("g").attr("id", id).attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
-      polar_x_pos = xfigScale(0.85);
-      polar_y_pos = yfigScale(0.6);
-=======
-      svg = d3.select("body").append("svg").attr("width", this.width).attr("height", this.height).append("g").attr("id", this.id).attr("transform", "translate(" + this.margin.left + "," + this.margin.top + ")");
       polar_x_pos = xfigScale(0.75);
       polar_y_pos = yfigScale(0.5);
->>>>>>> b563a8d41ff047c3bff5d8f38666de8d7a934842
       polar_radius = xfigScale(0.15);
       line_x_pos = xfigScale(0);
       line_y_pos = yfigScale(0);
